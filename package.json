@@ -1,0 +1,30 @@
+{
+  "name": "clearimpact",
+  "version": "1.0.0",
+  "description": "ClearImpact - Milestone-Escrow Grounded Transparency Platform",
+  "main": "server/server.js",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "postinstall": "npm install --prefix server && npm install --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "node server/server.js",
+    "server": "npm start --prefix server",
+    "client": "npm run dev --prefix client",
+    "test": "node --test server/tests/chatController.test.js"
+  },
+  "keywords": [
+    "escrow",
+    "ngo",
+    "transparency",
+    "donations",
+    "mern",
+    "gemini",
+    "react",
+    "mongodb"
+  ],
+  "author": "ClearImpact Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
