@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import ImpactAssistant from './components/common/ImpactAssistant';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -124,6 +125,7 @@ export default function App() {
             </Routes>
           </main>
           <Footer />
+          <ImpactAssistant />
         </div>
       </BrowserRouter>
     </AuthProvider>

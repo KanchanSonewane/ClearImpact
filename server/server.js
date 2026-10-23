@@ -16,6 +16,8 @@ const aiController = require('./controllers/aiController');
 const donationController = require('./controllers/donationController');
 const evidenceController = require('./controllers/evidenceController');
 const adminController = require('./controllers/adminController');
+const chatController = require('./controllers/chatController');
+const optionalAuthenticate = require('./middleware/optionalAuth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -86,6 +88,7 @@ app.delete('/api/campaigns/:id', authenticate, authorize(['NGO', 'ADMIN']), camp
 app.post('/api/ai/generate-campaign', authenticate, authorize(['NGO', 'ADMIN']), aiController.generateCampaign);
 app.post('/api/ai/validate-claims', authenticate, aiController.validateClaims);
 app.post('/api/ai/generate-impact-report/:milestoneId', authenticate, aiController.generateImpactReport);
+app.post('/api/chat/message', optionalAuthenticate, chatController.sendMessage);
 
 // ------------------------------------
 // 5. DONATION & PAYMENT ROUTES
