@@ -4,7 +4,7 @@
   "description": "ClearImpact - Milestone-Escrow Grounded Transparency Platform",
   "main": "server/server.js",
   "scripts": {
-    "build": "npm --prefix client install && npm --prefix client run build && npm --prefix server install",
+    "build": "npm --prefix client install --include=dev && npm --prefix client run build && npm --prefix server install",
     "start": "node server/server.js",
     "server": "npm start --prefix server",
     "client": "npm run dev --prefix client",
