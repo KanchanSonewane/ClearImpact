@@ -21,7 +21,6 @@ import RiskScoreCard from '../../components/common/RiskScoreCard';
 import NGOVerifiedBadge from '../../components/common/NGOVerifiedBadge';
 import { formatINR, formatDate } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
-import AIVideoAdGenerator from '../../components/common/AIVideoAdGenerator';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -165,7 +164,6 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap gap-2 text-xs font-bold border-b border-slate-200 pb-2">
         {[
           { id: 'OVERVIEW', label: 'Admin Activity & Logs' },
-          { id: 'VIDEO_STUDIO', label: '🎬 AI Video Ad Generator' },
           { id: 'NGOS', label: `NGO Verification (${pendingNgos.length})` },
           { id: 'CAMPAIGNS', label: `Campaign Approval (${pendingCampaigns.length})` },
           { id: 'EVIDENCE', label: `Evidence Review (${pendingEvidence.length})` },
@@ -184,11 +182,6 @@ export default function AdminDashboard() {
           </button>
         ))}
       </div>
-
-      {/* TAB: AI VIDEO AD GENERATOR */}
-      {activeTab === 'VIDEO_STUDIO' && (
-        <AIVideoAdGenerator onVideoAttached={() => fetchAdminData()} />
-      )}
 
       {/* TAB 1: OVERVIEW & RECENT AUDIT LOGS */}
       {activeTab === 'OVERVIEW' && (

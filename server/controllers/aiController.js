@@ -1,4 +1,4 @@
-const { generateCampaignStudio, generateVerifiedImpactReport, generateVideoStoryboard } = require('../services/aiService');
+const { generateCampaignStudio, generateVerifiedImpactReport } = require('../services/aiService');
 const { validateCampaignClaims } = require('../services/claimValidator');
 const Campaign = require('../models/Campaign');
 const CampaignMilestone = require('../models/CampaignMilestone');
@@ -88,42 +88,5 @@ exports.generateImpactReport = async (req, res) => {
     return res.json(report);
   } catch (err) {
     return res.status(500).json({ message: 'Failed to generate impact report', error: err.message });
-  }
-};
-
-exports.generateVideoStoryboard = async (req, res) => {
-  try {
-    const { campaignId, template, tone } = req.body;
-    let campaignInput = req.body.campaignInput;
-
-    if (campaignId && !campaignInput) {
-      const campaign = await Campaign.findById(campaignId).populate('ngoId');
-      if (campaign) {
-        campaignInput = {
-          title: campaign.title,
-          causeCategory: campaign.causeCategory,
-          targetAmount: campaign.targetAmount,
-          beneficiariesCount: campaign.beneficiariesCount,
-          location: campaign.location,
-          problem: campaign.problem,
-          solution: campaign.solution,
-          expectedImpact: campaign.expectedImpact,
-          orgName: campaign.ngoId?.orgName || 'Verified NGO',
-        };
-      }
-    }
-
-    if (!campaignInput) {
-      return res.status(400).json({ message: 'Missing campaign information for video storyboard.' });
-    }
-
-    const storyboard = await generateVideoStoryboard(campaignInput, { template, tone });
-    return res.json({
-      success: true,
-      storyboard,
-    });
-  } catch (err) {
-    console.error('Storyboard generation error:', err);
-    return res.status(500).json({ message: 'Failed to generate video storyboard', error: err.message });
   }
 };

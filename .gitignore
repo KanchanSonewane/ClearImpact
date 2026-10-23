@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment files with secrets (NEVER commit secrets to GitHub)
+.env
+.env.*
+server/.env
+
+# Large binary executables & tunnels
+cloudflared.exe
+*.exe
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads directory contents
+server/uploads/*
+!server/uploads/.gitkeep

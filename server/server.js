@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { connectDB } = require('./config/db');
 const { seedDatabase } = require('./utils/seedData');
 const { authenticate, authorize } = require('./middleware/auth');
@@ -83,7 +84,6 @@ app.delete('/api/campaigns/:id', authenticate, authorize(['NGO', 'ADMIN']), camp
 // 4. AI STUDIO ROUTES
 // ------------------------------------
 app.post('/api/ai/generate-campaign', authenticate, authorize(['NGO', 'ADMIN']), aiController.generateCampaign);
-app.post('/api/ai/generate-video-storyboard', authenticate, authorize(['NGO', 'ADMIN']), aiController.generateVideoStoryboard);
 app.post('/api/ai/validate-claims', authenticate, aiController.validateClaims);
 app.post('/api/ai/generate-impact-report/:milestoneId', authenticate, aiController.generateImpactReport);
 
@@ -122,6 +122,20 @@ app.get('/api/admin/campaigns/pending', authenticate, authorize(['ADMIN']), admi
 app.post('/api/admin/campaigns/:id/review', authenticate, authorize(['ADMIN']), adminController.reviewCampaign);
 app.get('/api/admin/evidence/pending', authenticate, authorize(['ADMIN']), adminController.getPendingEvidence);
 app.post('/api/admin/evidence/:id/review', authenticate, authorize(['ADMIN']), adminController.reviewEvidence);
+
+// ------------------------------------
+// 8. SERVE FRONTEND (FULL-STACK PRODUCTION & DEMO SHARING)
+// ------------------------------------
+const clientDistPath = path.join(__dirname, '../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
