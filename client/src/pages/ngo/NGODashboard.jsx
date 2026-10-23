@@ -224,6 +224,13 @@ export default function NGODashboard() {
                       View Public
                     </Link>
                     <Link
+                      to={`/campaign/${camp._id}?tab=poster`}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 text-xs font-bold flex items-center gap-1 transition"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>AI Posters</span>
+                    </Link>
+                    <Link
                       to="/ngo/milestones"
                       className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition"
                     >

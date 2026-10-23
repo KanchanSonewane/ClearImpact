@@ -20,7 +20,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import api from '../../api/client';
-import AdPosterPreview from '../../components/common/AdPosterPreview';
+import AIPosterStudio from '../../components/common/AIPosterStudio';
 import { useAuth } from '../../context/AuthContext';
 
 export default function CampaignStudio() {
@@ -401,7 +401,7 @@ export default function CampaignStudio() {
                   { id: 'WHATSAPP', label: 'WhatsApp', icon: MessageSquare },
                   { id: 'EMAIL', label: 'Email Appeal', icon: Mail },
                   { id: 'VIDEO', label: '30s Video Script', icon: Video },
-                  { id: 'POSTER', label: 'Ad Poster Preview', icon: Eye },
+                  { id: 'POSTER', label: '🎨 AI Poster Studio (14 Archetypes)', icon: Eye },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -613,17 +613,23 @@ export default function CampaignStudio() {
                 )}
 
                 {activeTab === 'POSTER' && (
-                  <AdPosterPreview
+                  <AIPosterStudio
                     campaign={{
+                      _id: 'draft-campaign',
                       title: generatedPackage.title,
+                      causeCategory: formData.causeCategory,
                       location: formData.location,
                       targetAmount: formData.targetAmount,
                       beneficiariesCount: formData.beneficiariesCount,
                       problem: formData.problem,
                       solution: formData.solution,
                       coverImage: formData.coverImage,
-                      ngoId: { orgName: ngo?.orgName || 'Vidya Foundation' },
+                      ngoId: {
+                        orgName: ngo?.orgName || 'Vidya Foundation',
+                        registrationNumber: ngo?.darpanId || 'DARPAN-VERIFIED'
+                      },
                     }}
+                    isAdmin={false}
                   />
                 )}
               </div>

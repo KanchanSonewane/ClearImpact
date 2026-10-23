@@ -21,3 +21,6 @@ yarn-error.log*
 # Uploads directory contents
 server/uploads/*
 !server/uploads/.gitkeep
+
+# Sample references
+sample_poster_code/

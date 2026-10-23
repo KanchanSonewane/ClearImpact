@@ -185,10 +185,14 @@ exports.getMyCampaigns = async (req, res) => {
 
 exports.updateCampaign = async (req, res) => {
   try {
-    const ngo = await NGO.findOne({ userId: req.user._id });
-    if (!ngo) return res.status(403).json({ message: 'Unauthorized' });
-
-    const campaign = await Campaign.findOne({ _id: req.params.id, ngoId: ngo._id });
+    let campaign;
+    if (req.user.role === 'ADMIN') {
+      campaign = await Campaign.findById(req.params.id);
+    } else {
+      const ngo = await NGO.findOne({ userId: req.user._id });
+      if (!ngo) return res.status(403).json({ message: 'Unauthorized' });
+      campaign = await Campaign.findOne({ _id: req.params.id, ngoId: ngo._id });
+    }
     if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
 
     const updateable = ['title', 'problem', 'solution', 'expectedImpact', 'aiGeneratedContent', 'coverImage'];

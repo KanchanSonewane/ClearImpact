@@ -19,6 +19,7 @@ import {
 import api from '../../api/client';
 import RiskScoreCard from '../../components/common/RiskScoreCard';
 import NGOVerifiedBadge from '../../components/common/NGOVerifiedBadge';
+import AIPosterStudio from '../../components/common/AIPosterStudio';
 import { formatINR, formatDate } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 
@@ -168,6 +169,7 @@ export default function AdminDashboard() {
           { id: 'CAMPAIGNS', label: `Campaign Approval (${pendingCampaigns.length})` },
           { id: 'EVIDENCE', label: `Evidence Review (${pendingEvidence.length})` },
           { id: 'FLAGGED', label: `Flagged Content (${pendingEvidence.filter(e => e.riskScore >= 40).length})` },
+          { id: 'POSTER_STUDIO', label: '🎨 AI Social Poster Studio' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -460,6 +462,11 @@ export default function AdminDashboard() {
               </div>
             ))}
         </div>
+      )}
+
+      {/* TAB 6: AI SOCIAL POSTER STUDIO */}
+      {activeTab === 'POSTER_STUDIO' && (
+        <AIPosterStudio isAdmin={true} onPosterCertified={fetchAdminData} />
       )}
     </div>
   );

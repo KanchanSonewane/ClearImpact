@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import {
   ShieldCheck,
   Calendar,
@@ -24,17 +24,19 @@ import NGOVerifiedBadge from '../../components/common/NGOVerifiedBadge';
 import TransparencyScoreBadge from '../../components/common/TransparencyScoreBadge';
 import RiskScoreCard from '../../components/common/RiskScoreCard';
 import DonationModal from '../../components/common/DonationModal';
+import AIPosterStudio from '../../components/common/AIPosterStudio';
 import { formatINR, formatDate, calculateExplainableMatch } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 
 export default function CampaignDetailsPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDonateOpen, setIsDonateOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('OVERVIEW'); // 'OVERVIEW' | 'MILESTONES' | 'EVIDENCE' | 'NGO'
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'poster' ? 'POSTER' : 'OVERVIEW'); // 'OVERVIEW' | 'MILESTONES' | 'EVIDENCE' | 'NGO'
 
   const fetchCampaign = async () => {
     try {
@@ -217,6 +219,17 @@ export default function CampaignDetailsPage() {
               }`}
             >
               NGO Credentials
+            </button>
+            <button
+              onClick={() => setActiveTab('POSTER')}
+              className={`pb-3 transition relative flex items-center gap-1.5 ${
+                activeTab === 'POSTER'
+                  ? 'text-brand-600 border-b-2 border-brand-600'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <span>🎨 Official Posters & Share</span>
             </button>
           </div>
 
@@ -445,6 +458,13 @@ export default function CampaignDetailsPage() {
                   <span className="font-bold text-emerald-700">Eligible</span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Tab 5: AI Social Poster Studio */}
+          {activeTab === 'POSTER' && (
+            <div className="space-y-4">
+              <AIPosterStudio campaign={campaign} isAdmin={user?.role === 'ADMIN'} />
             </div>
           )}
         </div>
