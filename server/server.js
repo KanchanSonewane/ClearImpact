@@ -71,7 +71,20 @@ app.get('/api/ngos/:id', ngoController.getNGOById);
 app.get('/api/ngo/me', authenticate, authorize(['NGO', 'ADMIN']), ngoController.getMyNGO);
 app.put('/api/ngo/me', authenticate, authorize(['NGO', 'ADMIN']), ngoController.updateMyNGO);
 app.get('/api/ngo/stats', authenticate, authorize(['NGO', 'ADMIN']), ngoController.getNGODashboardStats);
-app.post('/api/ngo/documents', authenticate, authorize(['NGO', 'ADMIN']), ngoController.uploadDocument);
+app.post(
+  '/api/ngo/documents',
+  authenticate,
+  authorize(['NGO', 'ADMIN']),
+  (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      next();
+    });
+  },
+  ngoController.uploadDocument
+);
 
 // ------------------------------------
 // 3. CAMPAIGN ROUTES

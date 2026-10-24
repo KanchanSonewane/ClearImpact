@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, Building2, User, CheckCircle2, FileText, Upload, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import DocumentVerificationDropzone, { SAMPLE_DOCUMENTS } from '../../components/common/DocumentVerificationDropzone';
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -27,11 +28,8 @@ export default function RegisterPage() {
   const [description, setDescription] = useState('');
   const [mission, setMission] = useState('');
 
-  // NGO Statutory Documents
-  const [doc12A80G, setDoc12A80G] = useState('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80');
-  const [docRegCert, setDocRegCert] = useState('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80');
-  const [docPanCard, setDocPanCard] = useState('https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80');
-  const [docBankProof, setDocBankProof] = useState('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80');
+  // NGO Statutory Documents (with real-time automated verification)
+  const [documents, setDocuments] = useState(SAMPLE_DOCUMENTS);
 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,10 +50,7 @@ export default function RegisterPage() {
     setState('Maharashtra');
     setDescription('Grassroots education trust dedicated to eradicating classroom dropouts in rural and semi-urban schools.');
     setMission('Providing 100% verified learning kits, nutritional support, and physical attendance registers for 5,000 students.');
-    setDoc12A80G('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80');
-    setDocRegCert('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80');
-    setDocPanCard('https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80');
-    setDocBankProof('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80');
+    setDocuments(SAMPLE_DOCUMENTS);
   };
 
   const handleSubmit = async (e) => {
@@ -66,29 +61,6 @@ export default function RegisterPage() {
     try {
       let ngoData = null;
       if (role === 'NGO') {
-        const documents = [
-          {
-            title: 'Section 12A & 80G Statutory Tax Exemption Order',
-            fileUrl: doc12A80G || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
-            uploadedAt: new Date(),
-          },
-          {
-            title: 'Public Charitable Trust Registration Deed & Certificate',
-            fileUrl: docRegCert || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-            uploadedAt: new Date(),
-          },
-          {
-            title: 'Organization Entity PAN Card Scan',
-            fileUrl: docPanCard || 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80',
-            uploadedAt: new Date(),
-          },
-          {
-            title: 'Bank Account Cancelled Cheque / Mandate',
-            fileUrl: docBankProof || 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
-            uploadedAt: new Date(),
-          },
-        ];
-
         ngoData = {
           orgName: orgName || name,
           darpanId: darpanId || `MH/2026/${Math.floor(100000 + Math.random() * 900000)}`,
@@ -99,7 +71,7 @@ export default function RegisterPage() {
           address: { city: city || 'Nagpur', state: state || 'Maharashtra' },
           description: description || 'Non-profit dedicated to transparent social progress.',
           mission: mission || 'Ensuring accountable impact for every rupee received.',
-          documents,
+          documents: documents || [],
         };
       }
 
@@ -119,7 +91,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl w-full space-y-6 bg-white p-8 rounded-3xl border border-slate-200/90 shadow-xl">
+      <div className="max-w-2xl w-full space-y-6 bg-white p-8 rounded-3xl border border-slate-200/90 shadow-xl">
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white flex items-center justify-center mx-auto shadow-md">
             <ShieldCheck className="w-7 h-7" />
@@ -172,14 +144,14 @@ export default function RegisterPage() {
           <button
             type="button"
             onClick={handleLoadDemoNGO}
-            className="w-full py-2 px-3 bg-gradient-to-r from-indigo-50 to-brand-50 hover:from-indigo-100 hover:to-brand-100 border border-brand-200 text-brand-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+            className="w-full py-2.5 px-3 bg-gradient-to-r from-indigo-50 to-brand-50 hover:from-indigo-100 hover:to-brand-100 border border-brand-200 text-brand-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
           >
             <Sparkles className="w-4 h-4 text-brand-600" />
-            <span>⚡ 1-Click Load Sample NGO with 4 Statutory Documents (For Demo)</span>
+            <span>⚡ 1-Click Load Sample NGO with 4 Verified Documents (For Demo)</span>
           </button>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -226,11 +198,11 @@ export default function RegisterPage() {
 
           {/* NGO Statutory Onboarding Fields */}
           {role === 'NGO' && (
-            <div className="pt-3 border-t border-slate-100 space-y-4">
+            <div className="pt-4 border-t border-slate-100 space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-brand-600" />
-                  NGO Statutory Details & Compliance Review
+                  NGO Statutory Details & Compliance Credentials
                 </span>
                 <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded">
                   Status: Verification Pending
@@ -351,69 +323,15 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* Statutory Documents Upload Section */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                  <FileText className="w-4 h-4 text-indigo-600" />
-                  <span>Statutory Compliance Documents (Audited by Admin)</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Provide verified document URLs or preview files. These documents are directly inspected in the Admin Verification Queue.
-                </p>
-
-                <div className="space-y-2 text-xs">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
-                      1. Section 12A & 80G Order Certificate URL
-                    </label>
-                    <input
-                      type="text"
-                      value={doc12A80G}
-                      onChange={(e) => setDoc12A80G(e.target.value)}
-                      placeholder="https://...12a_certificate.pdf"
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
-                      2. Trust Deed / Registration Certificate URL
-                    </label>
-                    <input
-                      type="text"
-                      value={docRegCert}
-                      onChange={(e) => setDocRegCert(e.target.value)}
-                      placeholder="https://...registration_deed.pdf"
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
-                      3. Organization PAN Card Document Proof
-                    </label>
-                    <input
-                      type="text"
-                      value={docPanCard}
-                      onChange={(e) => setDocPanCard(e.target.value)}
-                      placeholder="https://...pan_card.jpg"
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
-                      4. Cancelled Cheque / Bank Account Proof
-                    </label>
-                    <input
-                      type="text"
-                      value={docBankProof}
-                      onChange={(e) => setDocBankProof(e.target.value)}
-                      placeholder="https://...bank_cheque.jpg"
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
-                    />
-                  </div>
-                </div>
+              {/* Dedicated Real-Time Document Submission & Verification Zone */}
+              <div className="pt-2">
+                <DocumentVerificationDropzone
+                  documents={documents}
+                  onChange={setDocuments}
+                  orgName={orgName}
+                  pan={pan}
+                  darpanId={darpanId}
+                />
               </div>
             </div>
           )}
@@ -430,7 +348,7 @@ export default function RegisterPage() {
             disabled={isSubmitting}
             className="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-2"
           >
-            <span>{isSubmitting ? 'Creating Account & Submitting Documents...' : `Register as ${role}`}</span>
+            <span>{isSubmitting ? 'Verifying Documents & Creating Account...' : `Register as ${role}`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

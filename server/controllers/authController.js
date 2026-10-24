@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const NGO = require('../models/NGO');
 const { JWT_SECRET } = require('../middleware/auth');
+const { verifyDocumentHelper } = require('./ngoController');
 
 const generateToken = (userId, role) => {
   return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '7d' });
@@ -60,26 +61,53 @@ exports.register = async (req, res) => {
         description: ngoData?.description || 'Grassroots NGO committed to community empowerment and education.',
         mission: ngoData?.mission || 'Ensuring transparent, measurable impact for underprivileged communities.',
         verificationStatus: 'PENDING',
-        documents: (ngoData?.documents && Array.isArray(ngoData.documents) && ngoData.documents.length > 0)
-          ? ngoData.documents
-          : [
-              {
-                title: 'NGO Darpan Official Registration Certificate',
-                fileUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-                uploadedAt: new Date()
-              },
-              {
-                title: 'Income Tax 12A / 80G Statutory Exemption Order',
-                fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
-                uploadedAt: new Date()
-              },
-              {
-                title: 'Organization Entity PAN Card Proof',
-                fileUrl: 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80',
-                uploadedAt: new Date()
-              }
-            ],
+        documents: [],
       });
+
+      const initialDocs = (ngoData?.documents && Array.isArray(ngoData.documents) && ngoData.documents.length > 0)
+        ? ngoData.documents
+        : [
+            {
+              title: 'Section 12A & 80G Statutory Exemption Order',
+              docType: 'TAX_12A_80G',
+              fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+              fileName: '12A_80G_Exemption_Order.pdf',
+              fileSize: '1.2 MB'
+            },
+            {
+              title: 'Public Charitable Trust Deed & Registration Certificate',
+              docType: 'REGISTRATION_DEED',
+              fileUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+              fileName: 'Trust_Registration_Deed.pdf',
+              fileSize: '2.4 MB'
+            },
+            {
+              title: 'Organization Entity PAN Card Proof',
+              docType: 'PAN_CARD',
+              fileUrl: 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80',
+              fileName: 'Entity_PAN_Card.jpg',
+              fileSize: '0.8 MB'
+            },
+            {
+              title: 'Bank Account Cancelled Cheque / Mandate',
+              docType: 'BANK_PROOF',
+              fileUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
+              fileName: 'Bank_Cancelled_Cheque.jpg',
+              fileSize: '1.1 MB'
+            }
+          ];
+
+      createdNGO.documents = initialDocs.map((doc) =>
+        verifyDocumentHelper({
+          title: doc.title,
+          docType: doc.docType || 'STATUTORY_PROOF',
+          fileUrl: doc.fileUrl,
+          fileName: doc.fileName,
+          fileSize: doc.fileSize,
+          ngo: createdNGO,
+        })
+      );
+
       await createdNGO.save();
     }
 

@@ -83,6 +83,13 @@ export default function Navbar() {
               <HelpCircle className="w-4 h-4" />
               <span>How It Works</span>
             </Link>
+            <Link
+              to="/register?role=NGO"
+              className="text-sm font-semibold text-brand-700 hover:text-brand-800 transition flex items-center gap-1.5"
+            >
+              <Building2 className="w-4 h-4 text-brand-600" />
+              <span>Register NGO</span>
+            </Link>
           </nav>
 
           {/* Right Action Area */}
