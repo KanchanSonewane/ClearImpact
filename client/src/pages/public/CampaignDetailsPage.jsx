@@ -608,14 +608,26 @@ export default function CampaignDetailsPage() {
             </div>
 
             {/* Primary Action Button */}
-            <button
-              type="button"
-              onClick={() => setIsDonateOpen(true)}
-              className="w-full py-4 px-6 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-500/25 flex items-center justify-center gap-2 transition hover:-translate-y-0.5"
-            >
-              <span>Donate Now</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {(ngo?.verificationStatus && ngo.verificationStatus !== 'VERIFIED') ? (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs space-y-1 text-center">
+                <span className="font-bold text-amber-900 flex items-center justify-center gap-1.5">
+                  <Lock className="w-4 h-4 text-amber-600" />
+                  Donations Locked (NGO Verification Pending)
+                </span>
+                <p className="text-[11px] text-amber-800">
+                  This campaign belongs to an organization whose statutory documents are awaiting compliance admin approval. Escrow donations will open once verified.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsDonateOpen(true)}
+                className="w-full py-4 px-6 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-500/25 flex items-center justify-center gap-2 transition hover:-translate-y-0.5"
+              >
+                <span>Donate Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
 
             {/* Recent Backers */}
             <div className="pt-2 border-t border-slate-100 space-y-2">

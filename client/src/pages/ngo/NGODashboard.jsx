@@ -17,7 +17,8 @@ import {
   ExternalLink,
   Upload,
   CheckCircle2,
-  UserCheck
+  UserCheck,
+  Lock
 } from 'lucide-react';
 import api from '../../api/client';
 import NGOVerifiedBadge from '../../components/common/NGOVerifiedBadge';
@@ -452,13 +453,23 @@ export default function NGODashboard() {
             </p>
           </div>
 
-          <Link
-            to="/ngo/campaign-studio"
-            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Create New Campaign</span>
-          </Link>
+          {!isVerified ? (
+            <span
+              title="Donation requests and milestone creation are locked until your NGO registration is verified by an administrator."
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Create Campaign (Locked)</span>
+            </span>
+          ) : (
+            <Link
+              to="/ngo/campaign-studio"
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Create New Campaign</span>
+            </Link>
+          )}
         </div>
 
         {loading ? (

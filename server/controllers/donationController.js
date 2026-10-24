@@ -12,9 +12,15 @@ exports.createDonationOrder = async (req, res) => {
       return res.status(400).json({ message: 'Valid campaign and donation amount (min ₹10) are required.' });
     }
 
-    const campaign = await Campaign.findById(campaignId);
+    const campaign = await Campaign.findById(campaignId).populate('ngoId');
     if (!campaign) {
       return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    if (campaign.ngoId && campaign.ngoId.verificationStatus !== 'VERIFIED') {
+      return res.status(403).json({
+        message: 'Donations locked. This campaign belongs to an organization whose statutory documents are currently pending administrator verification. To protect donor funds in escrow, pledges cannot be placed until the NGO is verified.'
+      });
     }
 
     const order = await razorpayService.createOrder({
@@ -56,8 +62,14 @@ exports.verifyDonation = async (req, res) => {
       return res.status(400).json({ message: 'Payment verification failed: invalid signature.' });
     }
 
-    const campaign = await Campaign.findById(campaignId);
+    const campaign = await Campaign.findById(campaignId).populate('ngoId');
     if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+
+    if (campaign.ngoId && campaign.ngoId.verificationStatus !== 'VERIFIED') {
+      return res.status(403).json({
+        message: 'Donations locked for unverified NGO organization.'
+      });
+    }
 
     // Record donation
     const donation = new Donation({

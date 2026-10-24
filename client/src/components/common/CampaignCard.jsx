@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, HeartHandshake, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { MapPin, Users, HeartHandshake, ArrowRight, ShieldCheck, Sparkles, Lock } from 'lucide-react';
 import NGOVerifiedBadge from './NGOVerifiedBadge';
 import TransparencyScoreBadge from './TransparencyScoreBadge';
 import ClearImpactScoreBadge from './ClearImpactScoreBadge';
@@ -137,14 +137,24 @@ export default function CampaignCard({ campaign, onDonationComplete }) {
 
           {/* DUAL ACTION BUTTONS: Instant Donate & Details */}
           <div className="pt-2 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsDonateOpen(true)}
-              className="flex-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition flex items-center justify-center gap-1.5"
-            >
-              <HeartHandshake className="w-3.5 h-3.5" />
-              <span>Donate Now</span>
-            </button>
+            {campaign.ngoId?.verificationStatus && campaign.ngoId?.verificationStatus !== 'VERIFIED' ? (
+              <Link
+                to={`/campaign/${campaign._id}`}
+                className="flex-1 py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-700" />
+                <span>Verification Pending</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsDonateOpen(true)}
+                className="flex-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition flex items-center justify-center gap-1.5"
+              >
+                <HeartHandshake className="w-3.5 h-3.5" />
+                <span>Donate Now</span>
+              </button>
+            )}
 
             <Link
               to={`/campaign/${campaign._id}`}

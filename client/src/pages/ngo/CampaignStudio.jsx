@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles,
@@ -17,15 +17,54 @@ import {
   Mail,
   FileText,
   Target,
-  ArrowRight
+  ArrowRight,
+  Lock,
+  UserCheck,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import api from '../../api/client';
 import AIPosterStudio from '../../components/common/AIPosterStudio';
 import { useAuth } from '../../context/AuthContext';
 
 export default function CampaignStudio() {
-  const { ngo } = useAuth();
+  const { ngo, login } = useAuth();
   const navigate = useNavigate();
+
+  const [ngoProfile, setNgoProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/ngo/me');
+        setNgoProfile(res.data);
+      } catch (err) {
+        console.error('Failed to load profile', err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const currentVerificationStatus = (
+    ngoProfile?.ngo?.verificationStatus ||
+    ngoProfile?.verificationStatus ||
+    ngo?.verificationStatus ||
+    'PENDING'
+  ).toUpperCase();
+
+  const isVerified = currentVerificationStatus === 'VERIFIED';
+
+  const handleSwitchToAdmin = async () => {
+    try {
+      await login('admin@clearimpact.org', 'admin123');
+      navigate('/admin/dashboard');
+    } catch (err) {
+      console.error('Failed to switch to admin', err);
+    }
+  };
 
   // Structured Campaign Form
   const [formData, setFormData] = useState({
@@ -115,6 +154,10 @@ export default function CampaignStudio() {
   };
 
   const handleSubmitForApproval = async () => {
+    if (!isVerified) {
+      alert('Verification Required: Your organization profile is pending administrator approval. You cannot request donations or define milestones until approved by an administrator.');
+      return;
+    }
     if (!generatedPackage) return;
     setIsSubmittingCampaign(true);
 
@@ -194,6 +237,39 @@ export default function CampaignStudio() {
           <span>Prefill Demo Scenario (₹2L / 500 Students)</span>
         </button>
       </div>
+
+      {/* Verification Required Notice */}
+      {!isVerified && (
+        <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-amber-700" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-amber-950">
+                  Donation Requests & Milestones Locked (Verification Required)
+                </h4>
+                <span className="text-[10px] bg-amber-200/80 text-amber-900 font-bold px-2 py-0.5 rounded-full uppercase">
+                  {currentVerificationStatus}
+                </span>
+              </div>
+              <p className="text-xs text-amber-900/80 leading-relaxed max-w-2xl">
+                Before an NGO can request donations or define milestones, an administrator must verify statutory proofs (12A/80G, PAN, Trust Deed). You can draft content in preview mode, but milestone fund requests cannot be submitted until verified.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSwitchToAdmin}
+            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shrink-0 shadow-md transition flex items-center gap-2"
+          >
+            <UserCheck className="w-4 h-4 text-emerald-400" />
+            <span>⚡ Switch to Admin to Approve (Demo)</span>
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Input Form */}
@@ -637,18 +713,41 @@ export default function CampaignStudio() {
               {/* Submit for Admin Approval CTA */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-xs text-slate-500">
-                  Ready to deploy? Your campaign will be submitted for compliance review.
+                  {!isVerified
+                    ? 'Submission locked: This organization must be verified by an administrator before requesting donations.'
+                    : 'Ready to deploy? Your campaign with 3 milestones will be submitted for compliance review.'}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleSubmitForApproval}
-                  disabled={isSubmittingCampaign || submitSuccess}
-                  className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{submitSuccess ? 'Submitted for Review!' : isSubmittingCampaign ? 'Submitting...' : 'Submit Campaign for Review'}</span>
-                </button>
+                {!isVerified ? (
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      disabled
+                      className="px-5 py-3 bg-slate-100 border border-slate-200 text-slate-400 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                      <Lock className="w-4 h-4 text-slate-400" />
+                      <span>Locked (Awaiting NGO Verification)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSwitchToAdmin}
+                      className="px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition shrink-0 shadow-md"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Approve as Admin</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSubmitForApproval}
+                    disabled={isSubmittingCampaign || submitSuccess}
+                    className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{submitSuccess ? 'Submitted for Review!' : isSubmittingCampaign ? 'Submitting...' : 'Submit Campaign with 3 Milestones'}</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

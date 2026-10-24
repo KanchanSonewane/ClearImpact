@@ -9,6 +9,13 @@ exports.uploadEvidence = async (req, res) => {
     const ngo = await NGO.findOne({ userId: req.user._id });
     if (!ngo) return res.status(403).json({ message: 'Only registered NGOs can submit evidence.' });
 
+    if (ngo.verificationStatus !== 'VERIFIED') {
+      return res.status(403).json({
+        message: 'Organization verification required. Your statutory documents are currently pending administrator review. You cannot submit milestone evidence until verified.',
+        verificationStatus: ngo.verificationStatus,
+      });
+    }
+
     const {
       campaignId,
       milestoneId,

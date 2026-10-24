@@ -12,7 +12,8 @@ import {
   Sparkles,
   UserCheck,
   Box,
-  Layers
+  Layers,
+  Lock
 } from 'lucide-react';
 import api from '../../api/client';
 import RiskScoreCard from '../../components/common/RiskScoreCard';
@@ -23,6 +24,7 @@ export default function NGOMilestonesPage() {
   const { ngo, login } = useAuth();
   const navigate = useNavigate();
 
+  const [ngoProfile, setNgoProfile] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [milestones, setMilestones] = useState([]);
@@ -40,6 +42,27 @@ export default function NGOMilestonesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/ngo/me');
+        setNgoProfile(res.data);
+      } catch (err) {
+        console.error('Failed to load profile', err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const currentVerificationStatus = (
+    ngoProfile?.ngo?.verificationStatus ||
+    ngoProfile?.verificationStatus ||
+    ngo?.verificationStatus ||
+    'PENDING'
+  ).toUpperCase();
+
+  const isVerified = currentVerificationStatus === 'VERIFIED';
 
   useEffect(() => {
     const fetchNGOData = async () => {
@@ -109,6 +132,10 @@ export default function NGOMilestonesPage() {
 
   const handleSubmitEvidence = async (e) => {
     e.preventDefault();
+    if (!isVerified) {
+      setErrorMsg('Verification Required: Your organization profile is pending administrator approval. You cannot submit milestone evidence until verified.');
+      return;
+    }
     if (!selectedCampaignId || !selectedMilestoneId) {
       setErrorMsg('Please select a campaign and milestone.');
       return;
@@ -346,14 +373,32 @@ export default function NGOMilestonesPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition"
-            >
-              <Upload className="w-4 h-4" />
-              <span>{isSubmitting ? 'Analyzing File Hashes & EXIF...' : 'Submit Evidence for Risk Audit'}</span>
-            </button>
+            {!isVerified ? (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span className="font-bold text-amber-900">
+                    Submission Locked (Awaiting Admin NGO Verification)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSwitchToAdmin}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shrink-0 transition"
+                >
+                  Approve as Admin
+                </button>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition"
+              >
+                <Upload className="w-4 h-4" />
+                <span>{isSubmitting ? 'Analyzing File Hashes & EXIF...' : 'Submit Evidence for Risk Audit'}</span>
+              </button>
+            )}
           </form>
         </div>
 

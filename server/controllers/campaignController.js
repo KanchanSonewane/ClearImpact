@@ -78,6 +78,13 @@ exports.createCampaign = async (req, res) => {
       return res.status(403).json({ message: 'Only registered NGOs can create funding campaigns.' });
     }
 
+    if (ngo.verificationStatus !== 'VERIFIED') {
+      return res.status(403).json({
+        message: 'Organization verification required. Your statutory documents are currently pending administrator review. You cannot request donations or define milestones until your NGO profile is approved and verified by an administrator.',
+        verificationStatus: ngo.verificationStatus,
+      });
+    }
+
     const {
       title,
       causeCategory,
