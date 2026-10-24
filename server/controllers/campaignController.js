@@ -224,3 +224,26 @@ exports.deleteCampaign = async (req, res) => {
   }
 };
 
+exports.reportCampaign = async (req, res) => {
+  try {
+    const { reason, details, evidenceLink } = req.body;
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+
+    if (!campaign.reports) campaign.reports = [];
+    campaign.reports.push({
+      reason,
+      details,
+      evidenceLink,
+      reportedAt: new Date(),
+      status: 'PENDING_REVIEW'
+    });
+    await campaign.save();
+
+    return res.json({ success: true, message: 'Report registered for compliance review' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to submit report', error: err.message });
+  }
+};
+
+

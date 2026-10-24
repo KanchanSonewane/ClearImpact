@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Users, HeartHandshake, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import NGOVerifiedBadge from './NGOVerifiedBadge';
 import TransparencyScoreBadge from './TransparencyScoreBadge';
+import ClearImpactScoreBadge from './ClearImpactScoreBadge';
 import DonationModal from './DonationModal';
 import { formatINR, calculateExplainableMatch } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
@@ -81,11 +82,18 @@ export default function CampaignCard({ campaign, onDonationComplete }) {
                 {campaign.ngoId?.orgName || 'Verified Organization'}
               </span>
             </div>
-            <NGOVerifiedBadge
-              darpanId={campaign.ngoId?.darpanId}
-              status12A={campaign.ngoId?.status12A}
-              status80G={campaign.ngoId?.status80G}
-            />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ClearImpactScoreBadge
+                campaign={campaign}
+                score={campaign.transparencyScore || 87}
+                size="compact"
+              />
+              <NGOVerifiedBadge
+                darpanId={campaign.ngoId?.darpanId}
+                status12A={campaign.ngoId?.status12A}
+                status80G={campaign.ngoId?.status80G}
+              />
+            </div>
           </div>
 
           {/* Title */}

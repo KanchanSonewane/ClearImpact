@@ -81,6 +81,7 @@ app.get('/api/campaigns/:id', campaignController.getCampaignById);
 app.post('/api/campaigns', authenticate, authorize(['NGO', 'ADMIN']), campaignController.createCampaign);
 app.put('/api/campaigns/:id', authenticate, authorize(['NGO', 'ADMIN']), campaignController.updateCampaign);
 app.delete('/api/campaigns/:id', authenticate, authorize(['NGO', 'ADMIN']), campaignController.deleteCampaign);
+app.post('/api/campaigns/:id/report', campaignController.reportCampaign);
 
 // ------------------------------------
 // 4. AI STUDIO ROUTES
