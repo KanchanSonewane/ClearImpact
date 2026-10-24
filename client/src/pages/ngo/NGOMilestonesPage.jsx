@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Camera,
   Upload,
@@ -8,7 +9,10 @@ import {
   ArrowRight,
   ShieldCheck,
   FileText,
-  Sparkles
+  Sparkles,
+  UserCheck,
+  Box,
+  Layers
 } from 'lucide-react';
 import api from '../../api/client';
 import RiskScoreCard from '../../components/common/RiskScoreCard';
@@ -16,17 +20,18 @@ import { formatINR } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 
 export default function NGOMilestonesPage() {
-  const { ngo } = useAuth();
+  const { ngo, login } = useAuth();
+  const navigate = useNavigate();
 
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [milestones, setMilestones] = useState([]);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState('');
 
-  const [reportText, setReportText] = useState('Completed on-ground distribution of educational materials. All items inspected and signed off by the school principal.');
+  const [reportText, setReportText] = useState('Phase 1: Completed wholesale procurement of 500 standardized education kits from Navneet Stationery (GSTIN: 27AABCN1234F1Z8). All items delivered to central warehouse and batch-inspected.');
   const [beneficiariesReached, setBeneficiariesReached] = useState(500);
   const [afterPhotoUrl, setAfterPhotoUrl] = useState('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1000&q=80');
-  const [beforePhotoUrl, setBeforePhotoUrl] = useState('https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1000&q=80');
+  const [beforePhotoUrl, setBeforePhotoUrl] = useState('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1000&q=80');
 
   // Test flags to demonstrate explainable risk analysis
   const [forceDuplicate, setForceDuplicate] = useState(false);
@@ -70,6 +75,37 @@ export default function NGOMilestonesPage() {
     };
     fetchCampaignMilestones();
   }, [selectedCampaignId]);
+
+  // Milestone 1 Preset: Procurement & Delivery Challans
+  const handleMilestone1Preset = () => {
+    if (milestones[0]) setSelectedMilestoneId(milestones[0]._id);
+    setReportText('Phase 1: Completed wholesale procurement of 500 standardized education kits from Navneet Stationery (GSTIN: 27AABCN1234F1Z8). Itemized tax invoice and warehouse inventory challan attached.');
+    setBeneficiariesReached(500);
+    setBeforePhotoUrl('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1000&q=80');
+    setAfterPhotoUrl('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1000&q=80');
+    setForceDuplicate(false);
+    setForceTamper(false);
+  };
+
+  // Milestone 2 Preset: Field Handover "After Photos"
+  const handleMilestone2Preset = () => {
+    if (milestones[1]) setSelectedMilestoneId(milestones[1]._id);
+    setReportText('Phase 2: Completed physical distribution across 3 primary municipal schools in Nagpur. 500 children verified and handed kits with headmaster acknowledgment and signed student registers.');
+    setBeneficiariesReached(500);
+    setBeforePhotoUrl('https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1000&q=80');
+    setAfterPhotoUrl('https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1000&q=80');
+    setForceDuplicate(false);
+    setForceTamper(false);
+  };
+
+  const handleSwitchToAdmin = async () => {
+    try {
+      await login('admin@clearimpact.org', 'admin123');
+      navigate('/admin/dashboard');
+    } catch (err) {
+      console.error('Failed to switch to admin', err);
+    }
+  };
 
   const handleSubmitEvidence = async (e) => {
     e.preventDefault();
@@ -120,13 +156,46 @@ export default function NGOMilestonesPage() {
           Upload Milestone Execution Evidence
         </h1>
         <p className="text-xs text-slate-500 max-w-2xl">
-          Submit physical photos and verification reports to trigger automated risk scoring and unlock escrowed milestone funds.
+          Submit physical photos, invoices, and verification reports to trigger automated risk scoring and unlock escrowed milestone funds.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Form Column */}
         <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-xs space-y-6">
+          {/* Quick Presets for Milestone 1 vs Milestone 2 Demo */}
+          <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>1-Click Preset Evidence (For Faculty Demo)</span>
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={handleMilestone1Preset}
+                className="p-2.5 rounded-xl bg-white hover:bg-indigo-50 border border-indigo-100 font-bold text-indigo-950 text-left transition shadow-2xs flex items-center gap-2"
+              >
+                <Box className="w-4 h-4 text-indigo-600 shrink-0" />
+                <div>
+                  <div>Milestone 1: Procurement</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Invoices & warehouse kit boxes</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleMilestone2Preset}
+                className="p-2.5 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-100 font-bold text-emerald-950 text-left transition shadow-2xs flex items-center gap-2"
+              >
+                <Camera className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div>
+                  <div>Milestone 2: "After Photos"</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Students receiving school kits</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {errorMsg && (
             <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
               {errorMsg}
@@ -207,7 +276,7 @@ export default function NGOMilestonesPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  After Execution Photo (Primary Proof)
+                  Submitted After Photo (Primary Evidence Proof)
                 </label>
                 <input
                   type="text"
@@ -216,14 +285,14 @@ export default function NGOMilestonesPage() {
                   placeholder="https://images.unsplash.com/..."
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-mono"
                 />
-                <div className="mt-2 aspect-16/9 max-w-xs rounded-xl overflow-hidden border border-slate-200">
+                <div className="mt-2 aspect-16/9 max-w-xs rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
                   <img src={afterPhotoUrl} alt="After Preview" className="w-full h-full object-cover" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Before Execution Photo (Context)
+                  Before Execution Photo (Baseline Context)
                 </label>
                 <input
                   type="text"
@@ -248,30 +317,31 @@ export default function NGOMilestonesPage() {
               />
             </div>
 
-            {/* Simulation test flags for demonstration */}
-            <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200 text-xs space-y-2">
-              <span className="font-bold text-amber-900 block">
-                Explainable Risk Engine Test Toggles (Demo Lab Feature):
+            {/* 6. Risk Scoring Demonstration Toggles */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider block">
+                Fraud Engine Test Controls (Demonstrating Rejection / Flags)
               </span>
-              <div className="flex flex-wrap gap-4 text-[11px] text-amber-800">
-                <label className="flex items-center gap-1.5 cursor-pointer">
+
+              <div className="flex flex-col sm:flex-row gap-3 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={forceDuplicate}
                     onChange={(e) => setForceDuplicate(e.target.checked)}
-                    className="rounded text-amber-600"
+                    className="rounded text-brand-600 focus:ring-brand-500"
                   />
-                  <span>Simulate Duplicate Photo (+50 Risk)</span>
+                  <span>Simulate Duplicate Web Image (+50 Risk)</span>
                 </label>
 
-                <label className="flex items-center gap-1.5 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={forceTamper}
                     onChange={(e) => setForceTamper(e.target.checked)}
-                    className="rounded text-amber-600"
+                    className="rounded text-brand-600 focus:ring-brand-500"
                   />
-                  <span>Simulate Photoshop Tamper Signal (+40 Risk)</span>
+                  <span>Simulate Metadata Tamper (+40 Risk)</span>
                 </label>
               </div>
             </div>
@@ -296,14 +366,14 @@ export default function NGOMilestonesPage() {
                 Automated Risk Scoring Engine
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                When you click submit, our engine immediately computes the perceptual hash, scans EXIF timestamp metadata, checks against past uploads, and evaluates tamper signals.
+                When you click submit, our engine immediately computes the cryptographic SHA-256 hash, scans EXIF timestamp metadata, checks against past uploads, and evaluates tamper signals.
               </p>
             </div>
           ) : (
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-5">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Evidence Uploaded • Status Moved to UNDER REVIEW</span>
+                <span>Evidence Uploaded • Queued for Admin Milestone Fund Release</span>
               </div>
 
               {/* Risk Score Card */}
@@ -314,10 +384,20 @@ export default function NGOMilestonesPage() {
                 exifData={submissionResult.riskSummary.exifData}
               />
 
+              {/* Action Button: Switch to Admin to authorize release */}
+              <button
+                type="button"
+                onClick={handleSwitchToAdmin}
+                className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2"
+              >
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>⚡ Switch to Admin to Review & Authorize Fund Release</span>
+              </button>
+
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
                 <div className="font-bold text-slate-800">What happens next?</div>
                 <p className="text-slate-600 text-[11px] leading-relaxed">
-                  ClearImpact compliance administrators will review the evidence alongside the explainable risk checklist. Upon admin approval, the escrowed funds for this milestone will be released, and automated verified impact updates will be dispatched to donors!
+                  ClearImpact compliance administrators will review the evidence in the Admin Dashboard. Upon admin approval, the escrowed funds for this milestone will be released, and you can proceed to Milestone 2 to upload the final "After Photos"!
                 </p>
               </div>
             </div>

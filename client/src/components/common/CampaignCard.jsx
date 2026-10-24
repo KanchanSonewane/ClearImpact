@@ -89,6 +89,7 @@ export default function CampaignCard({ campaign, onDonationComplete }) {
                 size="compact"
               />
               <NGOVerifiedBadge
+                status={campaign.ngoId?.verificationStatus}
                 darpanId={campaign.ngoId?.darpanId}
                 status12A={campaign.ngoId?.status12A}
                 status80G={campaign.ngoId?.status80G}

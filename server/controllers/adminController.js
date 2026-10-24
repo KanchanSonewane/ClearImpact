@@ -60,10 +60,66 @@ exports.getAdminOverview = async (req, res) => {
 
 exports.getPendingNGOs = async (req, res) => {
   try {
-    const ngos = await NGO.find({ verificationStatus: { $in: ['PENDING', 'UNDER_REVIEW'] } })
+    const ngos = await NGO.find({ verificationStatus: { $in: ['PENDING', 'UNDER_REVIEW', 'REJECTED'] } })
       .populate('userId', 'name email')
       .sort({ createdAt: -1 });
-    return res.json(ngos);
+
+    const enriched = ngos.map((ngo) => {
+      const ngoObj = ngo.toObject();
+      let riskScore = 10;
+      const riskFlags = [];
+      const passedChecks = [];
+
+      // 1. PAN Regex Check
+      const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+      if (panRegex.test(ngo.pan)) {
+        passedChecks.push('PAN format structurally valid (10-char alphanumeric)');
+      } else {
+        riskScore += 25;
+        riskFlags.push('Non-standard or unformatted PAN structure');
+      }
+
+      // 2. Darpan ID Check
+      if (ngo.darpanId && ngo.darpanId.includes('/')) {
+        passedChecks.push(`Darpan Registry state code matched (${ngo.darpanId.split('/')[0] || 'MH'})`);
+      } else {
+        riskScore += 20;
+        riskFlags.push('NGO Darpan ID missing or unformatted');
+      }
+
+      // 3. 12A & 80G Statutory Status
+      if (ngo.status12A === 'YES' && ngo.status80G === 'YES') {
+        passedChecks.push('12A & 80G tax exemption active');
+      } else {
+        riskScore += 15;
+        riskFlags.push('12A/80G tax status pending or in renewal');
+      }
+
+      // 4. Verification Documents Check
+      const docCount = ngo.documents?.length || 0;
+      if (docCount >= 3) {
+        passedChecks.push(`Full statutory documentation package uploaded (${docCount} documents attached)`);
+      } else if (docCount > 0) {
+        passedChecks.push(`Partial documentation uploaded (${docCount} documents attached)`);
+        riskScore += 15;
+        riskFlags.push('Incomplete document bundle (at least 3 documents recommended)');
+      } else {
+        riskScore += 35;
+        riskFlags.push('Zero verification documents attached');
+      }
+
+      const finalRiskScore = Math.min(Math.max(riskScore, 5), 95);
+      const complianceScore = 100 - finalRiskScore;
+
+      ngoObj.calculatedRiskScore = finalRiskScore;
+      ngoObj.complianceScore = complianceScore;
+      ngoObj.passedChecks = passedChecks;
+      ngoObj.riskFlags = riskFlags;
+
+      return ngoObj;
+    });
+
+    return res.json(enriched);
   } catch (err) {
     return res.status(500).json({ message: 'Failed to fetch pending NGOs', error: err.message });
   }

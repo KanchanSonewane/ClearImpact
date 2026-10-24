@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   ShieldCheck,
@@ -12,7 +12,12 @@ import {
   Camera,
   ArrowRight,
   Share2,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  ExternalLink,
+  Upload,
+  CheckCircle2,
+  UserCheck
 } from 'lucide-react';
 import api from '../../api/client';
 import NGOVerifiedBadge from '../../components/common/NGOVerifiedBadge';
@@ -21,28 +26,124 @@ import { formatINR } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 
 export default function NGODashboard() {
-  const { user, ngo } = useAuth();
+  const { user, ngo, login } = useAuth();
+  const navigate = useNavigate();
+
   const [stats, setStats] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // New Document Upload State
+  const [showDocUpload, setShowDocUpload] = useState(false);
+  const [docTitle, setDocTitle] = useState('');
+  const [docUrl, setDocUrl] = useState('');
+  const [isSubmittingDoc, setIsSubmittingDoc] = useState(false);
+  const [docFeedback, setDocFeedback] = useState('');
+
+  const fetchDashboard = async () => {
+    try {
+      const [statsRes, campsRes] = await Promise.all([
+        api.get('/ngo/stats'),
+        api.get('/campaigns/ngo/my'),
+      ]);
+      setStats(statsRes.data);
+      setCampaigns(campsRes.data.campaigns || []);
+    } catch (err) {
+      console.error('Failed to load NGO dashboard', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const [statsRes, campsRes] = await Promise.all([
-          api.get('/ngo/stats'),
-          api.get('/campaigns/ngo/my'),
-        ]);
-        setStats(statsRes.data);
-        setCampaigns(campsRes.data.campaigns || []);
-      } catch (err) {
-        console.error('Failed to load NGO dashboard', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, []);
+    if (user?.role === 'NGO' || user?.role === 'ADMIN') {
+      fetchDashboard();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const handleUploadDocument = async (e) => {
+    e.preventDefault();
+    if (!docTitle || !docUrl) return;
+    setIsSubmittingDoc(true);
+    setDocFeedback('');
+
+    try {
+      await api.post('/ngo/documents', { title: docTitle, fileUrl: docUrl });
+      setDocFeedback('Document successfully attached for Compliance Review!');
+      setDocTitle('');
+      setDocUrl('');
+      setShowDocUpload(false);
+      await fetchDashboard();
+    } catch (err) {
+      setDocFeedback(err.response?.data?.message || 'Failed to attach document.');
+    } finally {
+      setIsSubmittingDoc(false);
+    }
+  };
+
+  const handleSwitchToAdmin = async () => {
+    try {
+      await login('admin@clearimpact.org', 'admin123');
+      navigate('/admin/dashboard');
+    } catch (err) {
+      console.error('Failed to switch to admin', err);
+    }
+  };
+
+  const handleSwitchToNGO = async () => {
+    try {
+      await login('ngo@vidya.org', 'ngo123');
+      navigate('/ngo/dashboard');
+    } catch (err) {
+      console.error('Failed to switch to NGO', err);
+    }
+  };
+
+  // If user is a DONOR who navigated to the NGO dashboard
+  if (user?.role === 'DONOR') {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-sm">
+          <Building2 className="w-8 h-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-slate-900">
+            You are logged in as a Donor (Philanthropist)
+          </h2>
+          <p className="text-xs text-slate-600 max-w-lg mx-auto leading-relaxed">
+            Donors browse campaigns, make pledges into escrow, and track verified impact. To upload NGO verification documents and request donations with milestones, please switch to an NGO partner persona or register a new organization.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={handleSwitchToNGO}
+            className="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md transition"
+          >
+            ⚡ Switch to NGO Account (Vidya Foundation)
+          </button>
+          <Link
+            to="/register?role=NGO"
+            className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
+          >
+            Register a New NGO
+          </Link>
+          <Link
+            to="/donor/dashboard"
+            className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition"
+          >
+            Back to Donor Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const currentStatus = stats?.verificationStatus || ngo?.verificationStatus || 'PENDING';
+  const isVerified = currentStatus === 'VERIFIED';
+  const documentsList = stats?.documents || ngo?.documents || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -50,17 +151,22 @@ export default function NGODashboard() {
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center font-black text-2xl shrink-0">
-            {ngo?.orgName ? ngo.orgName.slice(0, 2).toUpperCase() : 'VF'}
+            {stats?.orgName ? stats.orgName.slice(0, 2).toUpperCase() : (ngo?.orgName ? ngo.orgName.slice(0, 2).toUpperCase() : 'VF')}
           </div>
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-black text-slate-900">
-                {ngo?.orgName || 'Vidya Foundation'}
+                {stats?.orgName || ngo?.orgName || 'Vidya Foundation'}
               </h1>
-              <NGOVerifiedBadge darpanId={ngo?.darpanId} status12A={ngo?.status12A} status80G={ngo?.status80G} />
+              <NGOVerifiedBadge
+                status={currentStatus}
+                darpanId={stats?.darpanId || ngo?.darpanId}
+                status12A={stats?.status12A || ngo?.status12A}
+                status80G={stats?.status80G || ngo?.status80G}
+              />
             </div>
             <p className="text-xs text-slate-500">
-              NGO Darpan ID: <span className="font-mono text-slate-700 font-semibold">{ngo?.darpanId || 'MH/2021/0148291'}</span> • PAN: <span className="font-mono text-slate-700">{ngo?.pan || 'AAATV1234D'}</span>
+              NGO Darpan ID: <span className="font-mono text-slate-700 font-semibold">{stats?.darpanId || ngo?.darpanId || 'MH/2021/0148291'}</span> • PAN: <span className="font-mono text-slate-700 uppercase">{stats?.pan || ngo?.pan || 'AAATV1234D'}</span>
             </p>
           </div>
         </div>
@@ -84,6 +190,157 @@ export default function NGODashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Compliance & Verification Banner (Shows status, documents, and 1-click admin review) */}
+      {!isVerified ? (
+        <div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-3xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-amber-950">
+                    Statutory Verification in Progress (Under Review)
+                  </h3>
+                  <span className="text-[10px] bg-amber-200/80 text-amber-900 font-bold px-2 py-0.5 rounded-full uppercase">
+                    Status: {currentStatus}
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900/80 leading-relaxed max-w-2xl">
+                  Your uploaded statutory documents (PAN, 12A/80G, Darpan ID) are queued in the <strong>Admin Verification Queue</strong>. Milestone funds remain protected in escrow until an administrator signs off on your credentials.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSwitchToAdmin}
+                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 shrink-0"
+              >
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>⚡ Switch to Admin to Approve (Demo)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Attached Statutory Documents Checklist */}
+          <div className="bg-white/90 p-4 rounded-2xl border border-amber-200/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>Attached Statutory Documents ({documentsList.length})</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDocUpload(!showDocUpload)}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>{showDocUpload ? 'Cancel' : 'Upload Additional Document'}</span>
+              </button>
+            </div>
+
+            {docFeedback && (
+              <div className="p-2.5 bg-emerald-50 text-emerald-800 text-xs rounded-xl border border-emerald-200">
+                {docFeedback}
+              </div>
+            )}
+
+            {/* Document Upload Form */}
+            {showDocUpload && (
+              <form onSubmit={handleUploadDocument} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Document Title
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={docTitle}
+                      onChange={(e) => setDocTitle(e.target.value)}
+                      placeholder="e.g. Audited Balance Sheet 2025"
+                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Document Public File / Proof URL
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={docUrl}
+                      onChange={(e) => setDocUrl(e.target.value)}
+                      placeholder="https://images.unsplash.com/... or pdf url"
+                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingDoc}
+                    className="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg transition"
+                  >
+                    {isSubmittingDoc ? 'Uploading...' : 'Submit Document'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {documentsList.length === 0 ? (
+              <div className="text-xs text-slate-500 py-2 italic">
+                No statutory documents attached yet. Click 'Upload Additional Document' to add proof.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {documentsList.map((doc, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2 truncate pr-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="font-semibold text-slate-800 truncate">{doc.title}</span>
+                    </div>
+                    {doc.fileUrl && (
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-brand-600 hover:underline flex items-center gap-1 shrink-0 font-bold"
+                      >
+                        <span>View</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-emerald-950">
+                Organization Verified & Accredited for Milestone Escrow Payouts
+              </h4>
+              <p className="text-[11px] text-emerald-800">
+                Statutory credentials (PAN, 12A/80G, Darpan ID) verified by ClearImpact Compliance Officer.
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+            Active Status
+          </span>
+        </div>
+      )}
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -164,7 +421,7 @@ export default function NGODashboard() {
             <Building2 className="w-10 h-10 text-slate-300 mx-auto" />
             <h4 className="text-sm font-bold text-slate-700">No campaigns created yet</h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Use the AI Campaign Studio to generate a complete structured funding request and social outreach package.
+              Use the AI Campaign Studio to generate a complete structured funding request with milestones.
             </p>
             <Link
               to="/ngo/campaign-studio"

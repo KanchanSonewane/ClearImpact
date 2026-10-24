@@ -96,8 +96,47 @@ exports.getNGODashboardStats = async (req, res) => {
       campaignsCount: campaigns.length,
       transparencyScore: ngo.transparencyScore,
       verificationStatus: ngo.verificationStatus,
+      documents: ngo.documents || [],
+      orgName: ngo.orgName,
+      darpanId: ngo.darpanId,
+      pan: ngo.pan,
+      status12A: ngo.status12A,
+      status80G: ngo.status80G,
     });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to load stats', error: err.message });
+  }
+};
+
+exports.uploadDocument = async (req, res) => {
+  try {
+    const { title, fileUrl } = req.body;
+    if (!title || !fileUrl) {
+      return res.status(400).json({ message: 'Title and document URL are required.' });
+    }
+
+    const ngo = await NGO.findOne({ userId: req.user._id });
+    if (!ngo) return res.status(404).json({ message: 'NGO record not found.' });
+
+    if (!ngo.documents) ngo.documents = [];
+    ngo.documents.push({
+      title,
+      fileUrl,
+      uploadedAt: new Date(),
+    });
+
+    // If was rejected or pending, place under review
+    if (ngo.verificationStatus === 'REJECTED') {
+      ngo.verificationStatus = 'UNDER_REVIEW';
+    }
+    await ngo.save();
+
+    return res.json({
+      message: 'Document uploaded successfully and queued for compliance verification.',
+      documents: ngo.documents,
+      ngo,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to upload document', error: err.message });
   }
 };

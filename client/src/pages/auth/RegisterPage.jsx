@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Building2, User, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Building2, User, CheckCircle2, FileText, Upload, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterPage() {
@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // NGO Specific fields
+  // NGO Specific statutory fields
   const [orgName, setOrgName] = useState('');
   const [darpanId, setDarpanId] = useState('');
   const [registrationId, setRegistrationId] = useState('');
@@ -27,8 +27,36 @@ export default function RegisterPage() {
   const [description, setDescription] = useState('');
   const [mission, setMission] = useState('');
 
+  // NGO Statutory Documents
+  const [doc12A80G, setDoc12A80G] = useState('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80');
+  const [docRegCert, setDocRegCert] = useState('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80');
+  const [docPanCard, setDocPanCard] = useState('https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80');
+  const [docBankProof, setDocBankProof] = useState('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80');
+
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 1-Click Fill Verified Sample NGO Documents for seamless presentation demo
+  const handleLoadDemoNGO = () => {
+    setRole('NGO');
+    setName('Priya Kulkarni');
+    setEmail(`ngo.foundation.${Math.floor(100 + Math.random() * 900)}@clearimpact.org`);
+    setPassword('ngo12345');
+    setOrgName('Pratham Shiksha Foundation');
+    setDarpanId('MH/2024/0291845');
+    setRegistrationId('REG-TRUST-98412');
+    setPan('AABCP9871D');
+    setStatus12A('YES');
+    setStatus80G('YES');
+    setCity('Nagpur');
+    setState('Maharashtra');
+    setDescription('Grassroots education trust dedicated to eradicating classroom dropouts in rural and semi-urban schools.');
+    setMission('Providing 100% verified learning kits, nutritional support, and physical attendance registers for 5,000 students.');
+    setDoc12A80G('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80');
+    setDocRegCert('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80');
+    setDocPanCard('https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80');
+    setDocBankProof('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,16 +66,40 @@ export default function RegisterPage() {
     try {
       let ngoData = null;
       if (role === 'NGO') {
+        const documents = [
+          {
+            title: 'Section 12A & 80G Statutory Tax Exemption Order',
+            fileUrl: doc12A80G || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+            uploadedAt: new Date(),
+          },
+          {
+            title: 'Public Charitable Trust Registration Deed & Certificate',
+            fileUrl: docRegCert || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+            uploadedAt: new Date(),
+          },
+          {
+            title: 'Organization Entity PAN Card Scan',
+            fileUrl: docPanCard || 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80',
+            uploadedAt: new Date(),
+          },
+          {
+            title: 'Bank Account Cancelled Cheque / Mandate',
+            fileUrl: docBankProof || 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
+            uploadedAt: new Date(),
+          },
+        ];
+
         ngoData = {
           orgName: orgName || name,
           darpanId: darpanId || `MH/2026/${Math.floor(100000 + Math.random() * 900000)}`,
           registrationId: registrationId || `REG-${Date.now()}`,
-          pan: pan || 'AAATV1234D',
+          pan: pan || 'AABCP9871D',
           status12A,
           status80G,
           address: { city: city || 'Nagpur', state: state || 'Maharashtra' },
           description: description || 'Non-profit dedicated to transparent social progress.',
           mission: mission || 'Ensuring accountable impact for every rupee received.',
+          documents,
         };
       }
 
@@ -98,8 +150,9 @@ export default function RegisterPage() {
             }`}
           >
             <User className="w-4 h-4 text-emerald-600" />
-            <span>Join as Donor</span>
+            <span>Donor / Philanthropist</span>
           </button>
+
           <button
             type="button"
             onClick={() => setRole('NGO')}
@@ -110,22 +163,34 @@ export default function RegisterPage() {
             }`}
           >
             <Building2 className="w-4 h-4 text-brand-600" />
-            <span>Join as NGO</span>
+            <span>NGO Organization</span>
           </button>
         </div>
+
+        {/* Demo Fast-Fill Pill */}
+        {role === 'NGO' && (
+          <button
+            type="button"
+            onClick={handleLoadDemoNGO}
+            className="w-full py-2 px-3 bg-gradient-to-r from-indigo-50 to-brand-50 hover:from-indigo-100 hover:to-brand-100 border border-brand-200 text-brand-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+          >
+            <Sparkles className="w-4 h-4 text-brand-600" />
+            <span>⚡ 1-Click Load Sample NGO with 4 Statutory Documents (For Demo)</span>
+          </button>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {role === 'NGO' ? 'Representative Name' : 'Full Name'}
+                {role === 'NGO' ? 'NGO Representative Name' : 'Full Name'}
               </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Rahul Sharma"
+                placeholder="e.g. Priya Kulkarni"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-hidden"
               />
             </div>
@@ -139,7 +204,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. rahul@example.com"
+                placeholder="e.g. priya@foundation.org"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-hidden"
               />
             </div>
@@ -161,13 +226,14 @@ export default function RegisterPage() {
 
           {/* NGO Statutory Onboarding Fields */}
           {role === 'NGO' && (
-            <div className="pt-3 border-t border-slate-100 space-y-3">
+            <div className="pt-3 border-t border-slate-100 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800">
-                  NGO Statutory Details (Compliance Review)
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4 text-brand-600" />
+                  NGO Statutory Details & Compliance Review
                 </span>
-                <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded">
-                  Manual Verification Prototype
+                <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded">
+                  Status: Verification Pending
                 </span>
               </div>
 
@@ -180,7 +246,7 @@ export default function RegisterPage() {
                   required
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="e.g. Vidya Education Foundation"
+                  placeholder="e.g. Pratham Shiksha Foundation"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-hidden"
                 />
               </div>
@@ -195,7 +261,7 @@ export default function RegisterPage() {
                     required
                     value={darpanId}
                     onChange={(e) => setDarpanId(e.target.value)}
-                    placeholder="e.g. MH/2021/0148291"
+                    placeholder="e.g. MH/2024/0291845"
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-mono outline-hidden"
                   />
                 </div>
@@ -208,8 +274,8 @@ export default function RegisterPage() {
                     required
                     value={pan}
                     onChange={(e) => setPan(e.target.value)}
-                    placeholder="e.g. AAATV1234D"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-mono outline-hidden"
+                    placeholder="e.g. AABCP9871D"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-mono outline-hidden uppercase"
                   />
                 </div>
               </div>
@@ -217,7 +283,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    12A Exemption Status
+                    12A Non-Profit Exemption
                   </label>
                   <select
                     value={status12A}
@@ -231,14 +297,14 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    80G Tax Exemption
+                    80G Tax Deductible
                   </label>
                   <select
                     value={status80G}
                     onChange={(e) => setStatus80G(e.target.value)}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white"
                   >
-                    <option value="YES">Yes (Eligible for Donor Tax Exemption)</option>
+                    <option value="YES">Yes (Donor Tax Exemption Active)</option>
                     <option value="APPLIED">Applied</option>
                     <option value="NO">No</option>
                   </select>
@@ -284,11 +350,79 @@ export default function RegisterPage() {
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-hidden"
                 />
               </div>
+
+              {/* Statutory Documents Upload Section */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                  <FileText className="w-4 h-4 text-indigo-600" />
+                  <span>Statutory Compliance Documents (Audited by Admin)</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Provide verified document URLs or preview files. These documents are directly inspected in the Admin Verification Queue.
+                </p>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                      1. Section 12A & 80G Order Certificate URL
+                    </label>
+                    <input
+                      type="text"
+                      value={doc12A80G}
+                      onChange={(e) => setDoc12A80G(e.target.value)}
+                      placeholder="https://...12a_certificate.pdf"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                      2. Trust Deed / Registration Certificate URL
+                    </label>
+                    <input
+                      type="text"
+                      value={docRegCert}
+                      onChange={(e) => setDocRegCert(e.target.value)}
+                      placeholder="https://...registration_deed.pdf"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                      3. Organization PAN Card Document Proof
+                    </label>
+                    <input
+                      type="text"
+                      value={docPanCard}
+                      onChange={(e) => setDocPanCard(e.target.value)}
+                      placeholder="https://...pan_card.jpg"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                      4. Cancelled Cheque / Bank Account Proof
+                    </label>
+                    <input
+                      type="text"
+                      value={docBankProof}
+                      onChange={(e) => setDocBankProof(e.target.value)}
+                      placeholder="https://...bank_cheque.jpg"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 font-mono bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600">
-            <strong>Security Notice:</strong> Administrative accounts cannot be publicly registered.
+          <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <strong>Verification Standard:</strong> Newly registered NGOs remain in <strong>"Verification Pending"</strong> status. Escrow milestone releases are locked until an administrator reviews the statutory documents and grants the Verified badge.
+            </div>
           </div>
 
           <button
@@ -296,7 +430,7 @@ export default function RegisterPage() {
             disabled={isSubmitting}
             className="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-2"
           >
-            <span>{isSubmitting ? 'Creating Account...' : `Register as ${role}`}</span>
+            <span>{isSubmitting ? 'Creating Account & Submitting Documents...' : `Register as ${role}`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

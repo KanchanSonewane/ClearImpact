@@ -71,6 +71,7 @@ app.get('/api/ngos/:id', ngoController.getNGOById);
 app.get('/api/ngo/me', authenticate, authorize(['NGO', 'ADMIN']), ngoController.getMyNGO);
 app.put('/api/ngo/me', authenticate, authorize(['NGO', 'ADMIN']), ngoController.updateMyNGO);
 app.get('/api/ngo/stats', authenticate, authorize(['NGO', 'ADMIN']), ngoController.getNGODashboardStats);
+app.post('/api/ngo/documents', authenticate, authorize(['NGO', 'ADMIN']), ngoController.uploadDocument);
 
 // ------------------------------------
 // 3. CAMPAIGN ROUTES

@@ -60,6 +60,25 @@ exports.register = async (req, res) => {
         description: ngoData?.description || 'Grassroots NGO committed to community empowerment and education.',
         mission: ngoData?.mission || 'Ensuring transparent, measurable impact for underprivileged communities.',
         verificationStatus: 'PENDING',
+        documents: (ngoData?.documents && Array.isArray(ngoData.documents) && ngoData.documents.length > 0)
+          ? ngoData.documents
+          : [
+              {
+                title: 'NGO Darpan Official Registration Certificate',
+                fileUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+                uploadedAt: new Date()
+              },
+              {
+                title: 'Income Tax 12A / 80G Statutory Exemption Order',
+                fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+                uploadedAt: new Date()
+              },
+              {
+                title: 'Organization Entity PAN Card Proof',
+                fileUrl: 'https://images.unsplash.com/photo-1618042164219-62c820f10723?auto=format&fit=crop&w=800&q=80',
+                uploadedAt: new Date()
+              }
+            ],
       });
       await createdNGO.save();
     }

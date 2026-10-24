@@ -100,7 +100,7 @@ export default function NGOsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <NGOVerifiedBadge darpanId={ngo.darpanId} status12A={ngo.status12A} status80G={ngo.status80G} />
+                  <NGOVerifiedBadge status={ngo.verificationStatus} darpanId={ngo.darpanId} status12A={ngo.status12A} status80G={ngo.status80G} />
                   <TransparencyScoreBadge score={ngo.transparencyScore || 90} />
                 </div>
 

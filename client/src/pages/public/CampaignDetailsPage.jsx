@@ -102,7 +102,7 @@ export default function CampaignDetailsPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <ClearImpactScoreBadge campaign={campaign} score={campaign.transparencyScore || 87} />
-          <NGOVerifiedBadge darpanId={ngo?.darpanId} status12A={ngo?.status12A} status80G={ngo?.status80G} />
+          <NGOVerifiedBadge status={ngo?.verificationStatus} darpanId={ngo?.darpanId} status12A={ngo?.status12A} status80G={ngo?.status80G} />
           <button
             type="button"
             onClick={() => setIsTrustModalOpen(true)}
@@ -508,7 +508,7 @@ export default function CampaignDetailsPage() {
                 )}
                 <div>
                   <h4 className="text-base font-bold text-slate-900">{ngo?.orgName}</h4>
-                  <NGOVerifiedBadge darpanId={ngo?.darpanId} />
+                  <NGOVerifiedBadge status={ngo?.verificationStatus} darpanId={ngo?.darpanId} status12A={ngo?.status12A} status80G={ngo?.status80G} />
                 </div>
               </div>
 
