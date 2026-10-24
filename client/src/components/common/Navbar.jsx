@@ -84,6 +84,13 @@ export default function Navbar() {
               <span>How It Works</span>
             </Link>
             <Link
+              to="/ai-studio"
+              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition flex items-center gap-1.5 font-bold"
+            >
+              <Sparkles className="w-4 h-4 text-indigo-500" />
+              <span>AI Poster Studio</span>
+            </Link>
+            <Link
               to="/register?role=NGO"
               className="text-sm font-semibold text-brand-700 hover:text-brand-800 transition flex items-center gap-1.5"
             >
@@ -269,6 +276,13 @@ export default function Navbar() {
             className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             How It Works
+          </Link>
+          <Link
+            to="/ai-studio"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+          >
+            AI Poster Studio (14 Archetypes)
           </Link>
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">

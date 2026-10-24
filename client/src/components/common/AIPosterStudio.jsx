@@ -290,7 +290,14 @@ export default function AIPosterStudio({ campaign = null, isAdmin = false, onPos
         setCustomSub(res.data.data.shortDescription || t.sub);
       }
     } catch (err) {
-      console.error('Gemini generation error', err);
+      console.warn('Gemini generation fallback applied', err);
+      const fallbacks = [
+        `Together for ${location}: Equipping ${beneficiaries} Students with Future Tools`,
+        `Every Rupee Verified: Transforming ${beneficiaries} Lives in ${location}`,
+        `Zero Hallucination Giving: Direct Milestone Support for ${location}`
+      ];
+      const randomHead = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      setCustomHeadline(randomHead);
     } finally {
       setIsGeneratingGemini(false);
     }
@@ -316,47 +323,146 @@ export default function AIPosterStudio({ campaign = null, isAdmin = false, onPos
     canvas.height = height;
     const ctx = canvas.getContext('2d');
 
-    // Background gradient or color
-    ctx.fillStyle = selectedTemplate === 'minimal' ? '#f7f1e3' : selectedTemplate === 'comic' ? '#ffe45c' : '#0f4c3a';
+    const paletteMap = {
+      hope: { bg: '#064e3b', text: '#ffffff', accent: '#f59e0b', sub: '#a7f3d0' },
+      minimal: { bg: '#f7f1e3', text: '#12302a', accent: '#0f766e', sub: '#2d4a43' },
+      education: { bg: '#0f172a', text: '#ffffff', accent: '#38bdf8', sub: '#94a3b8' },
+      community: { bg: '#4a2040', text: '#ffffff', accent: '#f4d6a2', sub: '#e9d5ff' },
+      sunburst: { bg: '#78350f', text: '#ffffff', accent: '#fbbf24', sub: '#fde68a' },
+      notebook: { bg: '#fffdf6', text: '#1e293b', accent: '#0f4c3a', sub: '#475569' },
+      chalkboard: { bg: '#1b3b2f', text: '#d1fae5', accent: '#fde047', sub: '#a7f3d0' },
+      ticket: { bg: '#082f49', text: '#ffffff', accent: '#f59e0b', sub: '#bae6fd' },
+      polaroid: { bg: '#f4ebd9', text: '#1e293b', accent: '#0f766e', sub: '#475569' },
+      newspaper: { bg: '#f1ead8', text: '#0f172a', accent: '#b91c1c', sub: '#334155' },
+      movie: { bg: '#020617', text: '#ffffff', accent: '#eab308', sub: '#94a3b8' },
+      comic: { bg: '#ffe45c', text: '#000000', accent: '#dc2626', sub: '#1f2937' },
+      postcard: { bg: '#faf6ee', text: '#1e293b', accent: '#2563eb', sub: '#475569' },
+      bold: { bg: '#0f4c3a', text: '#f1cf72', accent: '#f1cf72', sub: '#fef08a' },
+    };
+
+    const palette = paletteMap[selectedTemplate] || paletteMap.hope;
+
+    // Background
+    ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, width, height);
 
-    // Render poster content
-    ctx.fillStyle = selectedTemplate === 'minimal' || selectedTemplate === 'comic' ? '#12302a' : '#ffffff';
-    ctx.font = 'bold 32px Inter, sans-serif';
-    ctx.fillText(`${orgName.toUpperCase()} • ${darpanId}`, 60, 90);
+    // Decorative Border
+    ctx.strokeStyle = palette.accent;
+    ctx.lineWidth = 12;
+    ctx.strokeRect(30, 30, width - 60, height - 60);
+
+    // Header: Org and Darpan ID
+    ctx.fillStyle = palette.text;
+    ctx.font = 'bold 30px Inter, sans-serif';
+    ctx.fillText(`${orgName.toUpperCase()} • ${darpanId}`, 70, 100);
+
+    // Badge
+    ctx.fillStyle = palette.accent;
+    ctx.font = 'bold 24px Inter, sans-serif';
+    ctx.fillText(`★ ${currentTemplate.badge}`, 70, 150);
 
     if (isCertified) {
       ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(width - 450, 45, 390, 60);
+      ctx.fillRect(width - 450, 65, 380, 55);
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 22px Inter, sans-serif';
-      ctx.fillText('✓ CLEARIMPACT CERTIFIED AD', width - 430, 84);
+      ctx.fillText('✓ CLEARIMPACT CERTIFIED', width - 420, 102);
     }
 
-    ctx.font = '900 68px Georgia, serif';
+    // Headline with wrapping
+    ctx.fillStyle = palette.text;
+    ctx.font = selectedTemplate === 'bold' ? '900 64px Inter, sans-serif' : 'bold 54px Georgia, serif';
     const words = t.head.split(' ');
     let line = '';
-    let y = 200;
+    let y = 250;
     words.forEach(word => {
       const testLine = line + word + ' ';
-      if (ctx.measureText(testLine).width > width - 120) {
-        ctx.fillText(line, 60, y);
+      if (ctx.measureText(testLine).width > width - 140) {
+        ctx.fillText(line, 70, y);
         line = word + ' ';
-        y += 85;
+        y += 70;
       } else {
         line = testLine;
       }
     });
-    ctx.fillText(line, 60, y);
+    ctx.fillText(line, 70, y);
+    y += 40;
 
-    // Goal and CTA
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(60, height - 260, width - 120, 180);
-    ctx.fillStyle = '#1e1b4b';
-    ctx.font = 'bold 36px Inter, sans-serif';
-    ctx.fillText(`TARGET: ${formatINR(target)} • 100% ESCROW PROTECTED`, 100, height - 170);
-    ctx.font = '900 48px Inter, sans-serif';
-    ctx.fillText('DONATE NOW ON CLEARIMPACT →', 100, height - 110);
+    // Subheadline with wrapping
+    ctx.fillStyle = palette.sub;
+    ctx.font = '400 28px Inter, sans-serif';
+    const subWords = t.sub.split(' ');
+    let subLine = '';
+    subWords.forEach(word => {
+      const testLine = subLine + word + ' ';
+      if (ctx.measureText(testLine).width > width - 140) {
+        ctx.fillText(subLine, 70, y);
+        subLine = word + ' ';
+        y += 45;
+      } else {
+        subLine = testLine;
+      }
+    });
+    ctx.fillText(subLine, 70, y);
+    y += 40;
+
+    // Benefit Badges
+    const badgeW = (width - 180) / 3;
+    t.benefits.forEach((b, idx) => {
+      const bx = 70 + idx * (badgeW + 20);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillRect(bx, y, badgeW, 70);
+      ctx.strokeStyle = palette.accent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, y, badgeW, 70);
+      ctx.fillStyle = palette.text;
+      ctx.font = 'bold 20px Inter, sans-serif';
+      ctx.fillText(b.length > 25 ? b.slice(0, 24) + '...' : b, bx + 15, y + 42);
+    });
+
+    // Goal & Escrow Box
+    const boxY = height - 260;
+    ctx.fillStyle = palette.accent;
+    ctx.fillRect(70, boxY, width - 360, 170);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 30px Inter, sans-serif';
+    ctx.fillText(`TARGET: ${formatINR(target)} • 100% ESCROW PROTECTED`, 100, boxY + 65);
+    ctx.font = '900 40px Inter, sans-serif';
+    ctx.fillText('DONATE NOW ON CLEARIMPACT →', 100, boxY + 125);
+
+    // QR Code Box (Drawn natively with high contrast so it's always crisp and un-tainted)
+    const qrX = width - 260;
+    const qrY = boxY;
+    const qrSize = 170;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+
+    // Simulated QR Matrix graphic
+    ctx.fillStyle = '#0f172a';
+    // Corners
+    ctx.fillRect(qrX + 15, qrY + 15, 35, 35);
+    ctx.fillRect(qrX + qrSize - 50, qrY + 15, 35, 35);
+    ctx.fillRect(qrX + 15, qrY + qrSize - 50, 35, 35);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(qrX + 22, qrY + 22, 21, 21);
+    ctx.fillRect(qrX + qrSize - 43, qrY + 22, 21, 21);
+    ctx.fillRect(qrX + 22, qrY + qrSize - 43, 21, 21);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(qrX + 27, qrY + 27, 11, 11);
+    ctx.fillRect(qrX + qrSize - 38, qrY + 27, 11, 11);
+    ctx.fillRect(qrX + 27, qrY + qrSize - 38, 11, 11);
+    // Center dots
+    ctx.fillRect(qrX + 65, qrY + 65, 40, 40);
+    ctx.fillRect(qrX + 115, qrY + 65, 15, 30);
+    ctx.fillRect(qrX + 65, qrY + 115, 35, 15);
+    ctx.fillRect(qrX + 115, qrY + 115, 20, 20);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('SCAN TO DONATE', qrX + 20, qrY + qrSize - 8);
 
     const link = document.createElement('a');
     link.download = `ClearImpact_Poster_${selectedTemplate}_${Date.now()}.png`;
@@ -575,7 +681,7 @@ export default function AIPosterStudio({ campaign = null, isAdmin = false, onPos
           <div
             ref={posterRef}
             className={`w-full max-w-[480px] rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl transition duration-300 relative overflow-hidden ${currentTemplate.bgClass} ${
-              aspectRatio === '9:16' ? 'aspect-9/16 min-h-[640px]' : aspectRatio === '1:1' ? 'aspect-square' : 'min-h-[580px]'
+              aspectRatio === '9:16' ? 'aspect-[9/16] min-h-[640px]' : aspectRatio === '1:1' ? 'aspect-square' : 'min-h-[580px]'
             }`}
           >
             {/* Top Bar: Category badge & NGO Org Name */}
@@ -648,7 +754,17 @@ export default function AIPosterStudio({ campaign = null, isAdmin = false, onPos
                   src={qrCodeUrl}
                   alt="Scan to Donate"
                   className="w-16 h-16 rounded-md object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextSibling) {
+                      e.currentTarget.nextSibling.style.display = 'flex';
+                    }
+                  }}
                 />
+                <div style={{ display: 'none' }} className="w-16 h-16 rounded-md bg-slate-900 text-white p-1 text-[8px] flex-col items-center justify-center font-mono font-bold">
+                  <span>[QR CODE]</span>
+                  <span className="text-[6px] text-emerald-400">CLEARIMPACT</span>
+                </div>
                 <span className="text-[8px] font-black text-slate-800 mt-0.5 tracking-tight">SCAN TO DONATE</span>
               </div>
             </div>

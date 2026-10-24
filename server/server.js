@@ -100,7 +100,7 @@ app.post('/api/campaigns/:id/report', campaignController.reportCampaign);
 // ------------------------------------
 // 4. AI STUDIO ROUTES
 // ------------------------------------
-app.post('/api/ai/generate-campaign', authenticate, authorize(['NGO', 'ADMIN']), aiController.generateCampaign);
+app.post('/api/ai/generate-campaign', authenticate, authorize(['NGO', 'ADMIN', 'DONOR']), aiController.generateCampaign);
 app.post('/api/ai/validate-claims', authenticate, aiController.validateClaims);
 app.post('/api/ai/generate-impact-report/:milestoneId', authenticate, aiController.generateImpactReport);
 app.post('/api/chat/message', optionalAuthenticate, chatController.sendMessage);

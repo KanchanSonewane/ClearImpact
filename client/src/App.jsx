@@ -66,7 +66,7 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
 
-              {/* NGO Routes */}
+              {/* NGO & AI Studio Routes */}
               <Route
                 path="/ngo/dashboard"
                 element={
@@ -78,11 +78,13 @@ export default function App() {
               <Route
                 path="/ngo/campaign-studio"
                 element={
-                  <ProtectedRoute allowedRoles={['NGO', 'ADMIN']}>
+                  <ProtectedRoute allowedRoles={['NGO', 'ADMIN', 'DONOR']}>
                     <CampaignStudio />
                   </ProtectedRoute>
                 }
               />
+              <Route path="/ai-studio" element={<CampaignStudio />} />
+              <Route path="/poster-studio" element={<CampaignStudio />} />
               <Route
                 path="/ngo/milestones"
                 element={

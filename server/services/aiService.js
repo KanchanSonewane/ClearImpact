@@ -11,11 +11,15 @@ async function callLLMIfAvailable(prompt, systemInstruction) {
 
   try {
     if (process.env.GEMINI_API_KEY) {
-      // Use Google Gemini REST API (gemini-3.8-flash)
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      // Use Google Gemini REST API (gemini-1.5-flash) with 5s timeout
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{
             parts: [{ text: `${systemInstruction}\n\nTask:\n${prompt}` }]
@@ -26,16 +30,20 @@ async function callLLMIfAvailable(prompt, systemInstruction) {
           }
         })
       });
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
           return JSON.parse(text);
         }
+      } else {
+        console.warn(`[AI Service] Gemini API returned status ${response.status}: ${response.statusText}`);
       }
     }
   } catch (err) {
-    console.warn('[AI Service] LLM call failed or returned unparseable response:', err.message);
+    console.warn('[AI Service] LLM call failed or timed out:', err.message);
   }
   return null;
 }
